@@ -6,3 +6,9 @@ interactions one individual or organization. Sovrin Agents are not required to
 interact with others or with the Sovrin network. A Sovrin Agent could provide 
 services for its owner, such as monitoring, notification, messaging, backups, 
 and interacting with the Sovrin Distributed Identity Ledger.  
+
+## Steps to install
+
+- `pip install -r requirements.txt`
+
+## Steps to run test
