@@ -7,8 +7,13 @@ interact with others or with the Sovrin network. A Sovrin Agent could provide
 services for its owner, such as monitoring, notification, messaging, backups, 
 and interacting with the Sovrin Distributed Identity Ledger.  
 
+## Pre-requisite
+- Python > 3.5
+
 ## Steps to install
+- Clone this repository and switch to cloned repository directory
+- `$ pip install -r requirements.txt`
 
-- `pip install -r requirements.txt`
-
-## Steps to run test
+## Steps to run apix
+- `$ python -m agent.scripts.startApiServer`
+- Run `$ pytest` to run all tests
