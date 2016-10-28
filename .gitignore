@@ -68,3 +68,9 @@ include/
 
 # generated doc files
 docs/source/api_docs/
+
+#mac files
+pbc-0.5.14/
+pbc-0.5.14.tar.gz
+setup-charm.sh
+setup-charm-homebrew.sh

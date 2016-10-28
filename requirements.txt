@@ -4,8 +4,8 @@ aiohttp-cors==0.4.0
 anoncreds==0.1.7
 async-timeout==1.0.0
 base58==0.2.3
+charm-crypto
 chardet==2.3.0
-Charm-Crypto==0.0.0
 ioflo==1.5.4
 jsonpickle==0.9.3
 jsonschema==2.5.1
