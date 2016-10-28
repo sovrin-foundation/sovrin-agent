@@ -1,7 +1,7 @@
 from addict import Dict
 from agent.common.constant import resourceStrings
 
-registerSchema = {
+onboardSchema = {
     "type": "object",
     "properties": {
         "signature": {
@@ -75,7 +75,7 @@ getClaimSchema = {
 
 schemaDict = {
     resourceStrings.V1: {
-        resourceStrings.ONBOARD: registerSchema,
+        resourceStrings.ONBOARD: onboardSchema,
         resourceStrings.LOGIN: loginSchema,
         resourceStrings.ACCEPT_INVITATION: acceptInvitationSchema,
         resourceStrings.GET_CLAIM: getClaimSchema
