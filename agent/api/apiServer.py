@@ -1,6 +1,8 @@
 import aiohttp_cors
+import sockjs
+import json
 
-from aiohttp import web
+from aiohttp import web, WSMsgType
 from jsonschema import validate
 
 from agent.schema.requestSchema import registerSchema, loginSchema, \
@@ -19,33 +21,54 @@ async def register(request, data):
     return web.json_response(data={"success": True})
 
 
-async def acceptInvitation(request, data):
+async def acceptInvitation(data):
     validate(data, acceptInvitationSchema)
     # get invitation from dummy data
     invitationId = data["invitation"]["id"]
     if invitationId in invitations:
-        return web.json_response(data=invitations[invitationId])
+        response = invitations[invitationId]
+        response['type'] = data['type']
+        return json.dumps({"type": data['type'],
+                           "claims": invitations[invitationId]['claims'],
+                           "linkId": data["invitation"]["id"]})
 
-    return web.json_response(data={"error": "No invitation found"})
+    return json.dumps(data={"type": "error", "error": "No invitation found"})
 
-async def getClaim(request, data):
+async def getClaim(data):
     validate(data, getClaimSchema)
     invitationId = data["invitationId"]
     if invitationId in invitations:
         invitation = invitations[invitationId]
         claims = list(invitation["claims"].values())
-        return web.json_response(data={"claims": claims})
+        return json.dumps({"claims": claims, "type": 'getClaim'})
 
-    return web.json_response(data={"error": "No invitation found"})
+    return json.dumps(data={"type": "error", "error": "No invitation found"})
+
+
+async def handleWebsocketData(data):
+    switcher = {
+        'acceptInvitation': acceptInvitation,
+        'getClaim': getClaim
+    }
+    return await switcher[data['type']](data)
+
+
+async def websocketHandler(msg, session):
+    if msg.tp == sockjs.MSG_OPEN:
+        session.manager.broadcast(json.dumps({'type': 'open', 'message': 'Socket connected'}))
+    elif msg.tp == sockjs.MSG_MESSAGE:
+        requestData = json.loads(msg.data)
+        responseData = await handleWebsocketData(requestData)
+        session.manager.broadcast(responseData)
+    elif msg.tp == sockjs.MSG_CLOSED:
+        session.manager.broadcast(json.dumps({'type': 'closed', 'message': 'Socket closed'}))
 
 
 def startApi():
     app = web.Application(middlewares=[jsonParseMiddleware])
-
+    sockjs.add_endpoint(app, prefix='/v1/sockjs', handler=websocketHandler)
     app.router.add_post('/v1/login', login)
     app.router.add_post('/v1/register', register)
-    app.router.add_post('/v1/acceptInvitation', acceptInvitation)
-    app.router.add_post('/v1/getClaim', getClaim)
 
     # Enable CORS on all APIs
     cors = aiohttp_cors.setup(app, defaults={
@@ -57,6 +80,7 @@ def startApi():
     })
 
     for route in list(app.router.routes()):
-        cors.add(route)
+        if route.name is not None and not route.name.startswith('sock'):
+            cors.add(route)
 
     web.run_app(app)
