@@ -1,12 +1,8 @@
+import pytest
 from asyncio import get_event_loop, sleep
 from pytest import fixture, mark
 from agent.agent import Agent
 from plenum.common.startable import Status
-
-
-@fixture()
-def loop():
-    return get_event_loop()
 
 
 @fixture()

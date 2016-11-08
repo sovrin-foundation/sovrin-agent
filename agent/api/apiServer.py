@@ -5,10 +5,11 @@ import json
 from aiohttp import web, WSMsgType
 from jsonschema import validate
 
-from agent.schema.requestSchema import registerSchema, loginSchema, \
-    acceptInvitationSchema, getClaimSchema
-from agent.api.data.sample import invitations
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
+from agent.onboarding.api.onboard import onboard
+from agent.login.api.login import login
+from agent.links.api.invitation import acceptInvitation
+from agent.claims.api.claims import getClaim
 
 
 async def login(request, data):
@@ -64,8 +65,8 @@ async def websocketHandler(msg, session):
         session.manager.broadcast(json.dumps({'type': 'closed', 'message': 'Socket closed'}))
 
 
-def startApi():
-    app = web.Application(middlewares=[jsonParseMiddleware])
+def api(loop):
+    app = Application(loop=loop, middlewares=[jsonParseMiddleware])
     sockjs.add_endpoint(app, prefix='/v1/sockjs', handler=websocketHandler)
     app.router.add_post('/v1/login', login)
     app.router.add_post('/v1/register', register)
@@ -83,4 +84,4 @@ def startApi():
         if route.name is not None and not route.name.startswith('sock'):
             cors.add(route)
 
-    web.run_app(app)
+    return app

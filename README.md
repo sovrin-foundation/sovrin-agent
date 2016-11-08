@@ -15,5 +15,5 @@ and interacting with the Sovrin Distributed Identity Ledger.
 - `$ pip install -r requirements.txt`
 
 ## Steps to run apix
-- `$ python -m agent.scripts.startApiServer`
+- `$ python -m agent.scripts.startApiServer.py 0.0.0.0 8080`
 - Run `$ pytest` to run all tests
