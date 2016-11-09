@@ -14,71 +14,67 @@ def log():
 
 
 @pytest.fixture
-def testChannelName():
+def eventName():
     return 'test'
 
 
 @pytest.fixture
-def testChannelData():
+def eventData():
     return 'Dummy text data to publish'
 
 
 @pytest.mark.asyncio
-async def test_subscribeCallsDataForEachChannel(
+async def testSubscribeCallsDataForEachChannel(
         log,
-        testChannelName,
-        testChannelData):
+        eventName,
+        eventData):
 
     log.debug = Mock(wraps=log.debug)
 
-    async def testMethod1():
-        testChannel = bus.subscribe(testChannelName)
-        callableName = stack()[0][3]
+    async def subscriber():
+        testChannel = bus.subscribe(eventName)
+        callableName = stack()[1][3]
         async for testEvent in testChannel:
             log.debug('Called {}'.format(callableName))
-            assert testEvent.data == testChannelData
-            await bus.unsubscribe(testChannelName, testChannel)
+            assert testEvent.data == eventData
+            await bus.unsubscribe(eventName, testChannel)
         else:
             log.debug('Stopped channel of method {}'.format(callableName))
 
-    async def testMethod2():
-        testChannel = bus.subscribe(testChannelName)
-        callableName = stack()[0][3]
-        async for testEvent in testChannel:
-            log.debug('Called {}'.format(callableName))
-            assert testEvent.data == testChannelData
-            await bus.unsubscribe(testChannelName, testChannel)
-        else:
-            log.debug('Stopped channel of method {}'.format(callableName))
+    async def subscriber1():
+        await subscriber()
+
+    async def subscriber2():
+        await subscriber()
 
     tasks = [
-        ensure_future(testMethod1()),
-        ensure_future(testMethod2())
+        ensure_future(subscriber1()),
+        ensure_future(subscriber2())
     ]
     # Let event loop run above tasks
     await sleep(0)
     # Now publish, once we have subscribed to bus
-    await bus.publish(testChannelName, testChannelData)
+    await bus.publish(eventName, eventData)
     await gather(*tasks)
     # Verify that logs were called in subscribers as well
     logCalls = [
-        call('Called testMethod1'),
-        call('Called testMethod2'),
-        call('Stopped channel of method testMethod1'),
-        call('Stopped channel of method testMethod2')
+        call('Called subscriber1'),
+        call('Called subscriber2'),
+        call('Stopped channel of method subscriber1'),
+        call('Stopped channel of method subscriber2')
     ]
     log.debug.assert_has_calls(logCalls, any_order=True)
     log.debug.reset_mock()
 
 
 @pytest.mark.asyncio
-async def test_unsubscribeRemovesChannelFromPublish(
+async def testUnsubscribeRemovesChannelFromPublish(
     log,
-    testChannelName,
-    testChannelData
+    eventName,
+    eventData
 ):
     log.debug = Mock(wraps=log.debug)
-    testChannel = bus.subscribe(testChannelName)
+    testChannel = bus.subscribe(eventName)
 
     async def testSubscriber():
         async for testEvent in testChannel:
@@ -91,11 +87,11 @@ async def test_unsubscribeRemovesChannelFromPublish(
     # Run subscriber, so that it starts waiting for a message
     subscriberTask = ensure_future(testSubscriber())
     await sleep(0)
-    await bus.unsubscribe(testChannelName, testChannel)
-    await bus.publish(testChannelName, testChannelData)
+    await bus.unsubscribe(eventName, testChannel)
+    await bus.publish(eventName, eventData)
     await subscriberTask
     # log should not have any call with text as data received
     unexpectedLog = 'Received Event on test Channel with {}'\
-        .format(testChannelData)
+        .format(eventData)
     assert (unexpectedLog,) not in log.debug.mock_calls
     log.debug.reset_mock()
