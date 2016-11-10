@@ -1,6 +1,7 @@
-from agent.common.signatureValidation import validate_signature
 import libnacl
 import base64
+
+from agent.common.signatureValidation import validate_signature
 
 
 def test_signature_validation():
@@ -10,5 +11,3 @@ def test_signature_validation():
     base64Signature = base64.b64encode(signed)
     base64Key = base64.b64encode(vk)
     assert validate_signature(base64Signature, base64Key, msg)
-
-test_signature_validation()

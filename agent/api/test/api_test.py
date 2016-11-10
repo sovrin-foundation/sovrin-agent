@@ -18,7 +18,7 @@ def test_onboardError(loop):
         'route': 'register'
     })
     with pytest.raises(ValidationError):
-        responseJson = loop.run_until_complete(onboard(postData))
+        loop.run_until_complete(onboard(postData))
 
 
 def test_loginError(loop):
@@ -27,7 +27,7 @@ def test_loginError(loop):
         'route': 'register'
     })
     with pytest.raises(ValidationError):
-        responseJson = loop.run_until_complete(login(postData))
+        loop.run_until_complete(login(postData))
 
 
 def test_claimError(loop):
@@ -36,7 +36,8 @@ def test_claimError(loop):
         'route': 'register'
     })
     with pytest.raises(ValidationError):
-        responseJson = loop.run_until_complete(getClaim(postData))
+        loop.run_until_complete(getClaim(postData))
+
     postData = {
         'signature': '979nknksdnknkskdsha797979878',
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8372334',
@@ -59,7 +60,7 @@ def test_invitationError(loop):
         }
     }
     with pytest.raises(ValidationError):
-        responseJson = loop.run_until_complete(acceptInvitation(postData))
+        loop.run_until_complete(acceptInvitation(postData))
 
     postData = {
         'route': 'acceptInvitation',
@@ -105,7 +106,8 @@ def test_loginSuccess(loop):
     assert 'success' in response
     assert response['success'] == True
 
-# TODO:SC test websockt connection
+
+# TODO:SC test websocket connection
 def test_acceptInvitationSuccess(loop):
     postData = {
         'route': 'acceptInvitation',
@@ -122,7 +124,8 @@ def test_acceptInvitationSuccess(loop):
     assert "claims" in response
     assert "cd40:98nkk86698688" in response["claims"]
 
-# TODO:SC test websockt connection
+
+# TODO:SC test websocket connection
 def test_getClaimSuccess(loop):
     postData = {
         'signature': '979nknksdnknkskdsha797979878',
