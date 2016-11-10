@@ -139,4 +139,3 @@ def test_getClaimSuccess(loop):
         claims
     )), {})
     assert 'degree' in claim['attributes']
-
