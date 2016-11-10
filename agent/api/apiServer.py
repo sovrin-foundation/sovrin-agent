@@ -13,6 +13,7 @@ from sovrin.agent.agent import runAgent, WalletedAgent
 from sovrin.client.client import Client
 
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
+from agent.common.signatureValidation import SignatureError
 from agent.onboarding.api.onboard import onboard
 from agent.login.api.login import login
 from agent.links.api.invitation import acceptInvitation
@@ -33,7 +34,9 @@ async def handleWebSocketRequest(data, app):
     }
     try:
         return await routeMap[data['route']](data, app)
-    except (TypeError, KeyError, ValidationError):
+    except SignatureError as err:
+        print(err)
+    except (TypeError, KeyError, ValidationError) as err:
         return INVALID_DATA
 
 
