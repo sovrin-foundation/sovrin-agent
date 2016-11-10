@@ -1,63 +1,114 @@
 import pytest
 
-from json import dumps
+from json import dumps, loads
 from functools import reduce
-from agent.api.apiServer import api
+
+from jsonschema import ValidationError
+
+from agent.links.api.invitation import acceptInvitation
+from agent.claims.api.claims import getClaim
+from agent.onboarding.api.onboard import onboard
+from agent.login.api.login import login
 
 
-@pytest.fixture
-def client(loop, test_client):
-    return loop.run_until_complete(test_client(api(loop)))
+def test_onboardError(loop):
+    postData = dumps({
+        'sovrinId': 'sovrinId',
+        'publicKey': 'o9889899bs0y8asndjds99sd79sdndjs7=',
+        'route': 'register'
+    })
+    with pytest.raises(ValidationError):
+        responseJson = loop.run_until_complete(onboard(postData))
 
 
-@pytest.mark.parametrize('url, status, key, errorMessage', [
-    ('/v1/onboard', 400, 'error', "None is not of type 'object'"),
-    ('/v1/login', 400, 'error', "None is not of type 'object'"),
-    ('/v1/acceptInvitation', 400, 'error', "None is not of type 'object'"),
-    ('/v1/getClaim', 400, 'error', "None is not of type 'object'")
-])
-def test_routeFailure(loop, client, url, status, key, errorMessage):
-    response = loop.run_until_complete(client.post(url))
-    assert response.status == status
-    responseText = loop.run_until_complete(response.json())
-    assert key in responseText
-    assert responseText[key] == errorMessage
+def test_loginError(loop):
+    postData = dumps({
+        'signature': '979nknksdnknkskdsha797979878',
+        'route': 'register'
+    })
+    with pytest.raises(ValidationError):
+        responseJson = loop.run_until_complete(login(postData))
 
 
-def test_noIndexRoute(loop, client):
-    response = loop.run_until_complete(client.get('/'))
-    assert response.status == 404
+def test_claimError(loop):
+    postData = dumps({
+        'signature': '979nknksdnknkskdsha797979878',
+        'route': 'register'
+    })
+    with pytest.raises(ValidationError):
+        responseJson = loop.run_until_complete(getClaim(postData))
+    postData = {
+        'signature': '979nknksdnknkskdsha797979878',
+        'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8372334',
+        'route': 'getClaim'
+    }
+    responseJson = loop.run_until_complete(getClaim(postData))
+    response = loads(responseJson)
+    assert response['status'] == 403
+    assert response['message'] == 'invalid claim'
 
 
-def test_onboardSuccess(loop, client):
+def test_invitationError(loop):
+    postData = {
+        'route': 'acceptInvitation',
+        'signature': '979nknksdnknkskdsha797979878',
+        'invitation': {
+            'id': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8378KH4=',
+            'publicKey': 'adfasdfuyaddfiaifd8f8d6f8df764svua',
+            'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
+        }
+    }
+    with pytest.raises(ValidationError):
+        responseJson = loop.run_until_complete(acceptInvitation(postData))
+
+    postData = {
+        'route': 'acceptInvitation',
+        'signature': '979nknksdnknkskdsha797979878',
+        'sovrinId': 'sovrinId',
+        'invitation': {
+            'id': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8378K875',
+            'publicKey': 'adfasdfuyaddfiaifd8f8d6f8df764svua',
+            'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
+        }
+    }
+    responseJson = loop.run_until_complete(acceptInvitation(postData))
+    response = loads(responseJson)
+    assert response['status'] == 403
+    assert response['message'] == 'invalid invitation'
+
+
+def test_onboardSuccess(loop):
     # TODO:KS generate this signature, key from nacl
     postData = dumps({
         'signature': '979nknksdnknkskdsha797979878',
         'sovrinId': 'sovrinId',
-        'publicKey': 'o9889899bs0y8asndjds99sd79sdndjs7='
+        'publicKey': 'o9889899bs0y8asndjds99sd79sdndjs7=',
+        'route': 'register'
     })
-    response = loop.run_until_complete(client.post('/v1/onboard', data=postData))
-    assert response.status == 200
-    responseJson = loop.run_until_complete(response.json())
-    assert 'success' in responseJson
-    assert responseJson['success'] == True
+    responseJson = loop.run_until_complete(onboard(postData))
+    response = loads(responseJson)
+    assert response['status'] == 200
+    assert 'success' in response
+    assert response['success'] == True
 
 
-def test_loginSuccess(loop, client):
+def test_loginSuccess(loop):
     # TODO:KS generate this signature from nacl generated secret key
     postData = dumps({
         'signature': '979nknksdnknkskdsha797979878',
-        'sovrinId': 'sovrinId'
+        'sovrinId': 'sovrinId',
+        'route': 'register'
     })
-    response = loop.run_until_complete(client.post('/v1/login', data=postData))
-    assert response.status == 200
-    responseJson = loop.run_until_complete(response.json())
-    assert 'success' in responseJson
-    assert responseJson['success'] == True
+    responseJSON = loop.run_until_complete(login(postData))
+    response = loads(responseJSON)
+    assert response['status'] == 200
+    assert 'success' in response
+    assert response['success'] == True
 
-
-def test_acceptInvitationSuccess(loop, client):
-    postData = dumps({
+# TODO:SC test websockt connection
+def test_acceptInvitationSuccess(loop):
+    postData = {
+        'route': 'acceptInvitation',
         'signature': '979nknksdnknkskdsha797979878',
         'sovrinId': 'sovrinId',
         'invitation': {
@@ -65,30 +116,23 @@ def test_acceptInvitationSuccess(loop, client):
             'publicKey': 'adfasdfuyaddfiaifd8f8d6f8df764svua',
             'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
         }
-    })
-    response = loop.run_until_complete(client.post(
-        "/v1/acceptInvitation",
-        data=postData
-    ))
-    assert response.status == 200
-    responseJson = loop.run_until_complete(response.json())
-    assert "claims" in responseJson
-    assert "cd40:98nkk86698688" in responseJson["claims"]
+    }
+    responseJson = loop.run_until_complete(acceptInvitation(postData))
+    response = loads(responseJson)
+    assert "claims" in response
+    assert "cd40:98nkk86698688" in response["claims"]
 
-
-def test_getClaimSuccess(loop, client):
-    postData = dumps({
+# TODO:SC test websockt connection
+def test_getClaimSuccess(loop):
+    postData = {
         'signature': '979nknksdnknkskdsha797979878',
-        'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8378KH4='
-    })
-    response = loop.run_until_complete(client.post(
-        '/v1/getClaim',
-        data=postData
-    ))
-    assert response.status == 200
-    responseJson = loop.run_until_complete(response.json())
-    assert 'claims' in responseJson
-    claims = responseJson['claims']
+        'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8378KH4=',
+        'route': 'getClaim'
+    }
+    responseJson = loop.run_until_complete(getClaim(postData))
+    response = loads(responseJson)
+    assert 'claims' in response
+    claims = response['claims']
     assert len(claims) > 0
     claim = reduce((lambda x, y: y), list(filter(
         lambda x: x['identifier'] == 'cd40:98nkk86698688',

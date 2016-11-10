@@ -1,16 +1,16 @@
-from aiohttp.web import json_response
 from jsonschema import validate
+import json
 
 from agent.schema.requestSchema import getClaimSchema
 from agent.api.data.sample import invitations
+from agent.common.errorMessages import INVALID_CLAIM
 
-
-async def getClaim(request, data):
+async def getClaim(data):
     validate(data, getClaimSchema)
     invitationId = data["invitationId"]
     if invitationId in invitations:
         invitation = invitations[invitationId]
         claims = list(invitation["claims"].values())
-        return json_response(data={"claims": claims})
+        return json.dumps({"claims": claims, "type": 'getClaim'})
 
-    return json_response(data={"error": "No invitation found"})
+    return INVALID_CLAIM
