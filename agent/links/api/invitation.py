@@ -3,7 +3,7 @@ import json
 
 from agent.schema.requestSchema import acceptInvitationSchema
 from agent.api.data.sample import invitations
-from agent.common.errorCodes import errorsMessages
+from agent.common.errorMessages import INVALID_INVITATION
 
 async def acceptInvitation(data):
 
@@ -17,4 +17,4 @@ async def acceptInvitation(data):
                            "claims": invitations[invitationId]['claims'],
                            "linkId": data["invitation"]["id"]})
 
-    return errorsMessages['INVALID_INVITATION']
+    return INVALID_INVITATION

@@ -3,7 +3,7 @@ import json
 
 from agent.schema.requestSchema import getClaimSchema
 from agent.api.data.sample import invitations
-from agent.common.errorCodes import errorsMessages
+from agent.common.errorMessages import errorsMessages
 
 async def getClaim(data):
     validate(data, getClaimSchema)

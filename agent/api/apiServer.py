@@ -11,7 +11,7 @@ from agent.login.api.login import login
 from agent.links.api.invitation import acceptInvitation
 from agent.claims.api.claims import getClaim
 from agent.common.apiMessages import SOCKET_CONNECTED, SOCKET_CLOSED
-from agent.common.errorCodes import errorsMessages
+from agent.common.errorMessages import INVALID_DATA
 
 async def handleWebsocketData(data):
     routeMap = {
@@ -23,7 +23,7 @@ async def handleWebsocketData(data):
     try:
         return await routeMap[data['route']](data)
     except (TypeError, KeyError, ValidationError):
-        return errorsMessages['INVALID_DATA']
+        return INVALID_DATA
 
 async def websocketHandler(msg, session):
     if msg.tp == sockjs.MSG_OPEN:
