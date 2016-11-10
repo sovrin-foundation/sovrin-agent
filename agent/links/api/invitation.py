@@ -1,4 +1,3 @@
-from jsonschema import ValidationError
 from jsonschema import validate
 import json
 
@@ -7,11 +6,8 @@ from agent.api.data.sample import invitations
 from agent.common.errorCodes import errorsMessages
 
 async def acceptInvitation(data):
-    try:
-        validate(data, acceptInvitationSchema)
-    except (TypeError, KeyError, ValidationError):
-        return errorsMessages['INVALID_DATA']
 
+    validate(data, acceptInvitationSchema)
     # get invitation from dummy data
     invitationId = data["invitation"]["id"]
     if invitationId in invitations:

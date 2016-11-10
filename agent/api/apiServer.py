@@ -3,13 +3,15 @@ import sockjs
 import json
 
 from aiohttp.web import Application
+from jsonschema import ValidationError
 
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
 from agent.onboarding.api.onboard import onboard
 from agent.login.api.login import login
 from agent.links.api.invitation import acceptInvitation
 from agent.claims.api.claims import getClaim
-from agent.common.constant import apiMessages
+from agent.common.apiMessages import SOCKET_CONNECTED, SOCKET_CLOSED
+from agent.common.errorCodes import errorsMessages
 
 async def handleWebsocketData(data):
     routeMap = {
@@ -18,18 +20,20 @@ async def handleWebsocketData(data):
         'login': login,
         'register': onboard
     }
-    return await routeMap[data['route']](data)
-
+    try:
+        return await routeMap[data['route']](data)
+    except (TypeError, KeyError, ValidationError):
+        return errorsMessages['INVALID_DATA']
 
 async def websocketHandler(msg, session):
     if msg.tp == sockjs.MSG_OPEN:
-        session.manager.broadcast(apiMessages['SOCKET_CONNECTED'])
+        session.manager.broadcast(SOCKET_CONNECTED)
     elif msg.tp == sockjs.MSG_MESSAGE:
         requestData = json.loads(msg.data)
         responseData = await handleWebsocketData(requestData)
         session.manager.broadcast(responseData)
     elif msg.tp == sockjs.MSG_CLOSED:
-        session.manager.broadcast(apiMessages['SOCKET_CLOSED'])
+        session.manager.broadcast(SOCKET_CLOSED)
 
 
 def api(loop):
