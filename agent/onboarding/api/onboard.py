@@ -1,9 +1,11 @@
-from aiohttp.web import json_response
+from json import dumps, loads
 
 from agent.schema.requestSchema import onboardSchema
 from jsonschema import validate
 
 
-async def onboard(request, data):
+async def onboard(request):
+    data = loads(request)
     validate(data, onboardSchema)
-    return json_response(data={"success": True})
+
+    return dumps({"type": "register", "success": True, "status": 200})

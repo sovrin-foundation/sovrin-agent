@@ -27,5 +27,6 @@ pytest-runner==2.9
 raet==0.6.5
 semver==2.7.1
 six==1.10.0
+sockjs==0.5.0
 sovrin==0.1.127
 wcwidth==0.1.7

@@ -4,6 +4,9 @@ from agent.common.constant import resourceStrings
 onboardSchema = {
     "type": "object",
     "properties": {
+        "route": {
+            "type": "string"
+        },
         "signature": {
             "type": "string"
         },
@@ -20,6 +23,9 @@ onboardSchema = {
 loginSchema = {
     "type": "object",
     "properties": {
+        "route": {
+            "type": "string"
+        },
         "signature": {
             "type": "string"
         },
@@ -33,6 +39,9 @@ loginSchema = {
 acceptInvitationSchema = {
     "type": "object",
     "properties": {
+        "route": {
+            "type": "string"
+        },
         "signature": {
             "type": "string"
         },
@@ -62,6 +71,9 @@ getClaimSchema = {
     "type": "object",
     "properties": {
         "invitationId": {
+            "route": {
+                "type": "string"
+            },
             "type": "string"
         },
         "signature": {
@@ -71,7 +83,7 @@ getClaimSchema = {
     "required": ["invitationId", "signature"]
 }
 
-# Decide b/w ProtoBuf and Avro
+# Decide among ProtoBuf, Avro and thrift
 
 schemaDict = {
     resourceStrings.V1: {

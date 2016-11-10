@@ -1,14 +1,20 @@
-from aiohttp.web import json_response
 from jsonschema import validate
+import json
 
 from agent.schema.requestSchema import acceptInvitationSchema
 from agent.api.data.sample import invitations
+from agent.common.errorMessages import INVALID_INVITATION
 
-async def acceptInvitation(request, data):
+async def acceptInvitation(data):
+
     validate(data, acceptInvitationSchema)
     # get invitation from dummy data
     invitationId = data["invitation"]["id"]
     if invitationId in invitations:
-        return json_response(data=invitations[invitationId])
+        response = invitations[invitationId]
+        response['type'] = data['route']
+        return json.dumps({"type": data['route'],
+                           "claims": invitations[invitationId]['claims'],
+                           "linkId": data["invitation"]["id"]})
 
-    return json_response(data={"error": "No invitation found"})
+    return INVALID_INVITATION
