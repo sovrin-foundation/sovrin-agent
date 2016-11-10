@@ -3,6 +3,8 @@ import pytest
 from json import dumps, loads
 from functools import reduce
 
+from jsonschema import ValidationError
+
 from agent.links.api.invitation import acceptInvitation
 from agent.claims.api.claims import getClaim
 from agent.onboarding.api.onboard import onboard
@@ -15,10 +17,8 @@ def test_onboardError(loop):
         'publicKey': 'o9889899bs0y8asndjds99sd79sdndjs7=',
         'route': 'register'
     })
-    responseJson = loop.run_until_complete(onboard(postData))
-    response = loads(responseJson)
-    assert response['status'] == 403
-    assert response['message'] == 'invalid request'
+    with pytest.raises(ValidationError):
+        responseJson = loop.run_until_complete(onboard(postData))
 
 
 def test_loginError(loop):
@@ -26,10 +26,8 @@ def test_loginError(loop):
         'signature': '979nknksdnknkskdsha797979878',
         'route': 'register'
     })
-    responseJson = loop.run_until_complete(login(postData))
-    response = loads(responseJson)
-    assert response['status'] == 403
-    assert response['message'] == 'invalid request'
+    with pytest.raises(ValidationError):
+        responseJson = loop.run_until_complete(login(postData))
 
 
 def test_claimError(loop):
@@ -37,10 +35,8 @@ def test_claimError(loop):
         'signature': '979nknksdnknkskdsha797979878',
         'route': 'register'
     })
-    responseJson = loop.run_until_complete(getClaim(postData))
-    response = loads(responseJson)
-    assert response['status'] == 403
-    assert response['message'] == 'invalid request'
+    with pytest.raises(ValidationError):
+        responseJson = loop.run_until_complete(getClaim(postData))
     postData = {
         'signature': '979nknksdnknkskdsha797979878',
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8372334',
@@ -62,10 +58,9 @@ def test_invitationError(loop):
             'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
         }
     }
-    responseJson = loop.run_until_complete(acceptInvitation(postData))
-    response = loads(responseJson)
-    assert response['status'] == 403
-    assert response['message'] == 'invalid request'
+    with pytest.raises(ValidationError):
+        responseJson = loop.run_until_complete(acceptInvitation(postData))
+
     postData = {
         'route': 'acceptInvitation',
         'signature': '979nknksdnknkskdsha797979878',
