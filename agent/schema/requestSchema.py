@@ -83,7 +83,7 @@ getClaimSchema = {
     "required": ["invitationId", "signature"]
 }
 
-# Decide b/w ProtoBuf and Avro
+# Decide among ProtoBuf, Avro and thrift
 
 schemaDict = {
     resourceStrings.V1: {
