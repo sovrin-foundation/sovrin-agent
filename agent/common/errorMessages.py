@@ -8,14 +8,14 @@ ALREADY_REGISTERED = dumps({
     }
 })
 
-SIGNATURE_VALIDATION = dumps({
+INVALID_SIGNATURE = dumps({
     "error": {
         "status": 400,
         "message": "invalid signature"
     }
 })
 
-SIGNATURE_MESSAGE_INVALID = dumps({
+SIGNATURE_MESSAGE_MISMATCH = dumps({
     "error": {
         "status": 400,
         "message": "decrypted message and sent message does not match"

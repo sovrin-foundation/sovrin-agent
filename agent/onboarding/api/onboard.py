@@ -9,9 +9,9 @@ async def onboard(data, app):
     validate(data, onboardSchema)
 
     # validate signature
-    verified = validateSignature(data['signature'], data['publicKey'], data['sovrinId'])
-    if verified != 'success':
-        return verified
+    verified, message = validateSignature(data['signature'], data['publicKey'], data['data'])
+    if not verified:
+        return message
     users = app['users']
     user = data['publicKey']
     if user not in users:
