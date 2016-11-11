@@ -94,10 +94,7 @@ def api(loop, name, seed):
     # Add agent to app instance to allow it to be accessible
     # from all api requests
     app['agent'] = agent
-    # In memory list of registered users,
-    # not using any database intentionally
-    # because we would evernym login/register flow without any database
-    # using Everauth of Evernym
+    # In memory list of registered users, not using any database intentionally
     app['users'] = {}
 
     return app
