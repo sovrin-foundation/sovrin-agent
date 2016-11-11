@@ -35,7 +35,7 @@ async def handleWebSocketRequest(data, app):
     try:
         return await routeMap[data['route']](data, app)
     except SignatureError as err:
-        print(err)
+        return err
     except (TypeError, KeyError, ValidationError) as err:
         return INVALID_DATA
 
@@ -98,6 +98,6 @@ def api(loop, name, seed):
     # not using any database intentionally
     # because we would evernym login/register flow without any database
     # using Everauth of Evernym
-    app['users'] = set()
+    app['users'] = {}
 
     return app

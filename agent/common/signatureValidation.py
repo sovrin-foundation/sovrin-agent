@@ -1,16 +1,14 @@
 import libnacl
 import base64
 import logging
-from json import dumps
+from agent.common.errorMessages import SIGNATURE_VALIDATION, SIGNATURE_MESSAGE_INVALID
 
 
 log = logging.getLogger()
 
 
 class SignatureError(Exception):
-    def __init__(self, message, errors):
-        super(self).__init__(message)
-        self.errors = errors
+    pass
 
 
 def validateSignature(signature, key, message):
@@ -18,6 +16,6 @@ def validateSignature(signature, key, message):
         original = libnacl.crypto_sign_open(base64.b64decode(signature), base64.b64decode(key))
         if bytes(message, 'utf-8') == original:
             return 'success'
-        return 'message and signature does not match'
-    except ValueError as err:
-        raise SignatureError(dumps({"error": err, "status": 400, "message": "invalid signature"}))
+        return SIGNATURE_MESSAGE_INVALID
+    except ValueError:
+        raise SignatureError(SIGNATURE_VALIDATION)

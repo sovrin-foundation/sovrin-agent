@@ -17,7 +17,7 @@ async def onboard(data, app):
     if user not in users:
         # Decide what properties to save with a user
         # once we have clarity to implement claims and links
-        app['users'][user] = {}
+        users[user] = {}
     else:
         return ALREADY_REGISTERED
 
