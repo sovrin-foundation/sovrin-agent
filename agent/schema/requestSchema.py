@@ -17,6 +17,9 @@ onboardSchema = {
         },
         "publicKey": {
             "type": "string"
+        },
+        "data": {
+            "type": "string"
         }
     },
     "required": ["signature", "sovrinId", "publicKey"]

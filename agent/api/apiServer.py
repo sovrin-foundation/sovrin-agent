@@ -52,19 +52,19 @@ async def webSocketConnectionHandler(msg, session):
         session.manager.broadcast(SOCKET_CLOSED)
 
 
-def startAgent(name, seed):
+def startAgent(name, seed, loop=None):
 
     class ApiAgent(WalletedAgent):
         def __init__(self,
                      basedirpath: str,
                      client: Client = None,
                      wallet: Wallet = None,
-                     port: int = None):
-            super().__init__(name, basedirpath, client, wallet, port)
+                     port: int = None, loop=None):
+            super().__init__(name, basedirpath, client, wallet, port, loop=loop)
 
     agentWallet = Wallet(name)
     agentWallet.addIdentifier(signer=SimpleSigner(seed=bytes(seed, 'utf-8')))
-    agent = runAgent(ApiAgent, name, wallet=agentWallet, startRunning=False)
+    agent = runAgent(ApiAgent, name, wallet=agentWallet, startRunning=False, loop=loop)
     agentPort = agent.endpoint.stackParams['ha'].port
     with Looper(debug=True) as looper:
         looper.add(agent)
@@ -90,7 +90,7 @@ def api(loop, name, seed):
         if route.name is not None and not route.name.startswith('sock'):
             cors.add(route)
 
-    agent = startAgent(name, seed)
+    agent = startAgent(name, seed, loop=loop)
     # Add agent to app instance to allow it to be accessible
     # from all api requests
     app['agent'] = agent
