@@ -1,7 +1,6 @@
 import logging
 import aiohttp_cors
 import sockjs
-import json
 
 from jsonschema import ValidationError
 from aiohttp.web import Application
@@ -14,12 +13,13 @@ from sovrin.client.client import Client
 
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
 from agent.common.signatureValidation import SignatureError
-from agent.onboarding.api.onboard import onboard
-from agent.login.api.login import login
-from agent.links.api.invitation import acceptInvitation
-from agent.claims.api.claims import getClaim
+from agent.onboarding.api.onboard import onboard, onboardHttp
+from agent.login.api.login import login, loginHttp
+from agent.links.api.invitation import acceptInvitation, acceptInvitationHttp
+from agent.claims.api.claims import getClaim, getClaimHttp
 from agent.common.apiMessages import SOCKET_CONNECTED, SOCKET_CLOSED
 from agent.common.errorMessages import INVALID_DATA
+from json import dumps
 
 log = logging.getLogger()
 
@@ -36,8 +36,8 @@ async def handleWebSocketRequest(data, app):
         return await routeMap[data['route']](data, app)
     except SignatureError as err:
         return err
-    except (TypeError, KeyError, ValidationError) as err:
-        return INVALID_DATA
+    except (TypeError, KeyError, ValidationError):
+        return dumps(INVALID_DATA)
 
 
 async def webSocketConnectionHandler(msg, session):
@@ -76,6 +76,10 @@ def startAgent(name, seed, loop=None):
 def api(loop, name, seed):
     app = Application(loop=loop, middlewares=[jsonParseMiddleware])
     sockjs.add_endpoint(app, prefix='/v1/wsConnection', handler=webSocketConnectionHandler)
+    app.router.add_post('/v1/login', loginHttp)
+    app.router.add_post('/v1/onboard', onboardHttp)
+    app.router.add_post('/v1/acceptInvitation', acceptInvitationHttp)
+    app.router.add_post('/v1/getClaim', getClaimHttp)
 
     # Enable CORS on all APIs
     cors = aiohttp_cors.setup(app, defaults={
