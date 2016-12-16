@@ -26,19 +26,3 @@ async def onboard(data, app):
 
     return dumps(REGISTER_SUCCESS)
 
-
-async def onboardHttp(request, data):
-    validate(data, onboardSchema)
-    verified, message = validateSignature(data['signature'], data['publicKey'], data['data'])
-    if not verified:
-        return message
-    users = request.app['users']
-    user = data['publicKey']
-    if user not in users:
-        # Decide what properties to save with a user
-        # once we have clarity to implement claims and links
-        users[user] = {}
-    else:
-        return ALREADY_REGISTERED
-
-    return json_response(data=REGISTER_SUCCESS)

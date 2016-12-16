@@ -7,7 +7,7 @@ from agent.api.data.sample import invitations
 from agent.common.errorMessages import INVALID_INVITATION
 
 
-async def acceptInvitation(data):
+async def acceptInvitation(data, app=None):
 
     validate(data, acceptInvitationSchema)
     # get invitation from dummy data
@@ -20,14 +20,3 @@ async def acceptInvitation(data):
                            "linkId": data["invitation"]["id"]})
 
     return dumps(INVALID_INVITATION)
-
-
-async def acceptInvitationHttp(request, data):
-    validate(data, acceptInvitationSchema)
-    invitationId = data["invitation"]["id"]
-    if invitationId in invitations:
-        return json_response(data={"type": data['route'],
-                                   "claims": invitations[invitationId]['claims'],
-                                   "linkId": data["invitation"]["id"]})
-
-    return json_response(data=INVALID_INVITATION)

@@ -1,17 +1,15 @@
-from aiohttp.web import json_response
 from jsonschema import validate
-from json import dumps, loads
+from json import dumps
+from agent.common.errorMessages import USER_NOT_FOUND
 
 from agent.schema.requestSchema import loginSchema
 from agent.common.apiMessages import LOGIN_SUCCESS
 
 
-async def login(request):
-    data = loads(request)
+async def login(data, app):
     validate(data, loginSchema)
-    return dumps(LOGIN_SUCCESS)
 
+    if data['publicKey'] in app['users']:
+        return dumps(LOGIN_SUCCESS)
 
-async def loginHttp(request, data):
-    validate(data, loginSchema)
-    return json_response(data=LOGIN_SUCCESS)
+    return dumps(USER_NOT_FOUND)

@@ -16,33 +16,34 @@ from agent.api.apiServer import api
 
 @pytest.fixture
 def client(loop, test_client):
-    # loop = new_event_loop()
     return loop.run_until_complete(test_client(api(loop, "Faber", "Faber000000000000000000000000000")))
 
 
-def test_onboardError(loop, client):
+def testOnboardError(loop):
     postData = dumps({
         'sovrinId': 'sovrinId',
         'publicKey': 'o9889899bs0y8asndjds99sd79sdndjs7=',
-        'route': 'register'
+        'route': 'onboard'
     })
     with pytest.raises(ValidationError):
         loop.run_until_complete(onboard(postData, client.app))
-        client.app['agent'].endpoint.stop()
+        #client.app['agent'].endpoint.stop()
 
-def test_loginError(loop):
+
+def testLoginError(loop):
     postData = dumps({
         'signature': '979nknksdnknkskdsha797979878',
-        'route': 'register'
+        'route': 'login'
     })
     with pytest.raises(ValidationError):
         loop.run_until_complete(login(postData))
-        client.app['agent'].endpoint.stop()
+        #client.app['agent'].endpoint.stop()
 
-def test_claimError(loop):
+
+def testClaimError(loop):
     postData = dumps({
         'signature': '979nknksdnknkskdsha797979878',
-        'route': 'register'
+        'route': 'getClaim'
     })
     with pytest.raises(ValidationError):
         loop.run_until_complete(getClaim(postData))
@@ -58,7 +59,7 @@ def test_claimError(loop):
     assert response['error']['message'] == 'invalid claim'
 
 
-def test_invitationError(loop):
+def testInvitationError(loop):
     postData = {
         'route': 'acceptInvitation',
         'signature': '979nknksdnknkskdsha797979878',
@@ -70,7 +71,6 @@ def test_invitationError(loop):
     }
     with pytest.raises(ValidationError):
         loop.run_until_complete(acceptInvitation(postData))
-        client.app['agent'].endpoint.stop()
 
     postData = {
         'route': 'acceptInvitation',
@@ -88,14 +88,14 @@ def test_invitationError(loop):
     assert response['error']['message'] == 'invalid invitation'
 
 
-def test_onboardSuccess(loop, client):
+def testOnboardSuccess(loop, client):
     # TODO:KS generate this signature, key from nacl
     postData = dumps({
         'signature': 'xTayONsFJnVNmgGH8CFIGbZcfI6ikR+w9kPuzUkAqFFTdkm6Eujy5AYx+PwEgwZkm5ob6nPDXYGS2aTCFyhcDHNvdnJpbklk',
         'sovrinId': 'sovrinId',
         'data': dumps({'message': 'sovrinId'}),
         'publicKey': 'eutTvvZLl5OmPkCl29WNFmwUpsJrDzuZUuS+hm36TJ4=',
-        'route': 'register'
+        'route': 'onboard'
     })
     responseJson = loop.run_until_complete(onboard(loads(postData), client.app))
     response = loads(responseJson)
@@ -104,22 +104,23 @@ def test_onboardSuccess(loop, client):
     assert response['success']['success'] == True
     client.app['agent'].endpoint.stop()
 
-def test_loginSuccess(loop):
+def testLoginSuccess(loop):
     # TODO:KS generate this signature from nacl generated secret key
-    postData = dumps({
+    postData = {
         'signature': '979nknksdnknkskdsha797979878',
         'sovrinId': 'sovrinId',
-        'route': 'register'
-    })
+        'route': 'login'
+    }
     responseJSON = loop.run_until_complete(login(postData))
     response = loads(responseJSON)
     assert response['success']['status'] == 200
     assert 'success' in response['success']
     assert response['success']['success'] == True
+    #client.app['agent'].endpoint.stop()
 
 
 # TODO:SC test websocket connection
-def test_acceptInvitationSuccess(loop):
+def testAcceptInvitationSuccess(loop):
     postData = {
         'route': 'acceptInvitation',
         'signature': '979nknksdnknkskdsha797979878',
@@ -137,7 +138,7 @@ def test_acceptInvitationSuccess(loop):
 
 
 # TODO:SC test websocket connection
-def test_getClaimSuccess(loop):
+def testGetClaimSuccess(loop):
     postData = {
         'signature': '979nknksdnknkskdsha797979878',
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8378KH4=',
@@ -155,7 +156,7 @@ def test_getClaimSuccess(loop):
     assert 'degree' in claim['attributes']
 
 
-def test_onboardSuccessHtpp(loop, client):
+def testOnboardSuccessHtpp(loop, client):
     # TODO:KS generate this signature, key from nacl
     postData = dumps({
         'signature': 'xTayONsFJnVNmgGH8CFIGbZcfI6ikR+w9kPuzUkAqFFTdkm6Eujy5AYx+PwEgwZkm5ob6nPDXYGS2aTCFyhcDHNvdnJpbklk',
@@ -173,7 +174,7 @@ def test_onboardSuccessHtpp(loop, client):
     client.app['agent'].endpoint.stop()
 
 
-def test_loginSuccessHttp(loop, client):
+def testLoginSuccessHttp(loop, client):
     # TODO:KS generate this signature from nacl generated secret key
     postData = dumps({
         'signature': '979nknksdnknkskdsha797979878',
@@ -196,7 +197,7 @@ def test_loginSuccessHttp(loop, client):
     ('/v1/acceptInvitation', 400, 'error', "None is not of type 'object'"),
     ('/v1/getClaim', 400, 'error', "None is not of type 'object'")
 ])
-def test_routeFailure(loop, client, url, status, key, errorMessage):
+def testRouteFailure(loop, client, url, status, key, errorMessage):
     response = loop.run_until_complete(client.post(url))
     assert response.status == status
     responseText = loop.run_until_complete(response.json())
@@ -205,12 +206,12 @@ def test_routeFailure(loop, client, url, status, key, errorMessage):
     client.app['agent'].endpoint.stop()
 
 
-def test_noIndexRoute(loop, client):
+def testNoIndexRoute(loop, client):
     response = loop.run_until_complete(client.get('/'))
     assert response.status == 404
     client.app['agent'].endpoint.stop()
 
-def test_acceptInvitationSuccessHttp(loop, client):
+def testAcceptInvitationSuccessHttp(loop, client):
     postData = dumps({
         'route': 'acceptInvitation',
         'signature': '979nknksdnknkskdsha797979878',
@@ -232,7 +233,7 @@ def test_acceptInvitationSuccessHttp(loop, client):
     client.app['agent'].endpoint.stop()
 
 
-def test_getClaimSuccessHtpp(loop, client):
+def testGetClaimSuccessHtpp(loop, client):
     postData = dumps({
         'signature': '979nknksdnknkskdsha797979878',
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8378KH4=',

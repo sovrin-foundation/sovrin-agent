@@ -53,3 +53,10 @@ INVALID_CLAIM = {
          "message": "invalid claim"
     }
 }
+
+USER_NOT_FOUND = {
+    'error': {
+        'status': 400,
+        'message': 'user not found'
+    }
+}

@@ -3,7 +3,8 @@ import aiohttp_cors
 import sockjs
 
 from jsonschema import ValidationError
-from aiohttp.web import Application
+from aiohttp.web import Application, json_response, Response
+from json import dumps, loads
 
 from plenum.common.looper import Looper
 from plenum.common.signer_simple import SimpleSigner
@@ -13,16 +14,14 @@ from sovrin.client.client import Client
 
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
 from agent.common.signatureValidation import SignatureError
-from agent.onboarding.api.onboard import onboard, onboardHttp
-from agent.login.api.login import login, loginHttp
-from agent.links.api.invitation import acceptInvitation, acceptInvitationHttp
-from agent.claims.api.claims import getClaim, getClaimHttp
+from agent.onboarding.api.onboard import onboard
+from agent.login.api.login import login
+from agent.links.api.invitation import acceptInvitation
+from agent.claims.api.claims import getClaim
 from agent.common.apiMessages import SOCKET_CONNECTED, SOCKET_CLOSED
 from agent.common.errorMessages import INVALID_DATA
-from json import dumps
 
 log = logging.getLogger()
-
 
 async def handleWebSocketRequest(data, app):
     # TODO:SC Add version in route as well
@@ -45,11 +44,27 @@ async def webSocketConnectionHandler(msg, session):
         session.manager.broadcast(SOCKET_CONNECTED)
     elif msg.tp == sockjs.MSG_MESSAGE:
         # TODO:SC handle json parse error, schema error
-        requestData = json.loads(msg.data)
+        requestData = loads(msg.data)
         responseData = await handleWebSocketRequest(requestData, session.registry)
         session.manager.broadcast(responseData)
     elif msg.tp == sockjs.MSG_CLOSED:
         session.manager.broadcast(SOCKET_CLOSED)
+
+
+async def handleHttpRequest(request, data):
+    routeMap = {
+        '/v1/acceptInvitation': acceptInvitation,
+        '/v1/getClaim': getClaim,
+        '/v1/login': login,
+        '/v1/onboard': onboard
+    }
+    try:
+        response = await routeMap[request.path](data, request.app)
+        return Response(response)
+    except SignatureError as err:
+        return Response(err)
+    except (TypeError, KeyError, ValidationError):
+        return json_response(INVALID_DATA)
 
 
 def startAgent(name, seed, loop=None):
@@ -76,10 +91,10 @@ def startAgent(name, seed, loop=None):
 def api(loop, name, seed):
     app = Application(loop=loop, middlewares=[jsonParseMiddleware])
     sockjs.add_endpoint(app, prefix='/v1/wsConnection', handler=webSocketConnectionHandler)
-    app.router.add_post('/v1/login', loginHttp)
-    app.router.add_post('/v1/onboard', onboardHttp)
-    app.router.add_post('/v1/acceptInvitation', acceptInvitationHttp)
-    app.router.add_post('/v1/getClaim', getClaimHttp)
+    app.router.add_post('/v1/login', handleHttpRequest)
+    app.router.add_post('/v1/onboard', handleHttpRequest)
+    app.router.add_post('/v1/acceptInvitation', handleHttpRequest)
+    app.router.add_post('/v1/getClaim', handleHttpRequest)
 
     # Enable CORS on all APIs
     cors = aiohttp_cors.setup(app, defaults={
