@@ -15,14 +15,14 @@ postData = {
 }
 
 
-async def fetch(client):
-    async with client.post('http://localhost:8080/acceptInvitation',data=json.dumps(postData)) as resp:
+async def acceptInvitation(client):
+    async with client.post('http://localhost:8080/acceptInvitation', data=json.dumps(postData)) as resp:
         #assert resp.status == 200
         return await resp.text()
 
 async def main(loop):
     async with aiohttp.ClientSession(loop=loop) as client:
-        html = await fetch(client)
+        html = await acceptInvitation(client)
         print(html)
 
 loop = asyncio.get_event_loop()
