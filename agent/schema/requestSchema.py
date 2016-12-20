@@ -69,18 +69,20 @@ acceptInvitationSchema = {
 
 getClaimSchema = {
     "type": "object",
+
     "properties": {
         "invitationId": {
-            "route": {
-                "type": "string"
-            },
+
             "type": "string"
         },
         "signature": {
             "type": "string"
+        },
+        "route": {
+            "type": "string"
         }
     },
-    "required": ["invitationId", "signature"]
+    "required": ["invitationId", "signature", "route"]
 }
 
 # Decide among ProtoBuf, Avro and thrift

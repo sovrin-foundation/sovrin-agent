@@ -1,8 +1,11 @@
+
 import aiohttp_cors
+import asyncio
 import sockjs
 import json
 
-from aiohttp.web import Application
+from aiohttp.web import Application, json_response
+import aiohttp
 from jsonschema import ValidationError
 
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
@@ -36,9 +39,26 @@ async def websocketHandler(msg, session):
         session.manager.broadcast(SOCKET_CLOSED)
 
 
+async def httphandler(request, data):
+    if request.path == "/acceptInvitation":
+        async with aiohttp.ClientSession(loop=request.app.loop) as session:
+            result = await acceptInvitation(data, session, 'http://localhost:8100/getClaims')
+            print(result)
+            return json_response(result)
+    elif request.path == "/getClaims":
+        result = await getClaim(data)
+        return json_response(result)
+
+async def fetch(session, url):
+    async with session.post(url) as response:
+        return await response.text()
+
+
 def api(loop):
     app = Application(loop=loop, middlewares=[jsonParseMiddleware])
     sockjs.add_endpoint(app, prefix='/v1/wsConnection', handler=websocketHandler)
+    app.router.add_post('/acceptInvitation', httphandler)
+    app.router.add_post('/getClaims', httphandler)
 
     # Enable CORS on all APIs
     cors = aiohttp_cors.setup(app, defaults={
