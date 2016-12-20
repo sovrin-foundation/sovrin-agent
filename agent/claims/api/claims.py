@@ -11,6 +11,8 @@ async def getClaim(data):
     if invitationId in invitations:
         invitation = invitations[invitationId]
         claims = list(invitation["claims"].values())
+        print("sending Alice's claims----------------------")
+        print(claims)
         return {"claims": claims, "type": 'getClaim'}
 
     return INVALID_CLAIM

@@ -43,6 +43,7 @@ async def httphandler(request, data):
     if request.path == "/acceptInvitation":
         async with aiohttp.ClientSession(loop=request.app.loop) as session:
             result = await acceptInvitation(data, session, 'http://localhost:8100/getClaims')
+            print('Got Claims from Faber-----------------------------')
             print(result)
             return json_response(result)
     elif request.path == "/getClaims":

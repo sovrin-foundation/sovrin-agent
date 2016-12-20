@@ -8,6 +8,8 @@ from agent.common.errorMessages import INVALID_INVITATION
 async def acceptInvitation(data, session, url):
 
     validate(data, acceptInvitationSchema)
+    print('Got Accept Invitation request from Alice')
+    print(data);
     # get invitation from dummy data
     invitationId = data["invitation"]["id"]
     if invitationId in invitations:
