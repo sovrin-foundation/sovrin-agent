@@ -6,10 +6,12 @@ from agent.api.apiServer import api
 
 # get host and port from command line
 parser = argparse.ArgumentParser(description="Start agent api server")
-parser.add_argument("name")
-parser.add_argument("seed")
+
+parser.add_argument("name", nargs="?", default="Faber")
+parser.add_argument("seed", nargs="?", default="Faber000000000000000000000000000")
 parser.add_argument("host", nargs="?", default="0.0.0.0")
 parser.add_argument("port", nargs="?", type=int, default=8080)
+
 args = parser.parse_args()
 
 # run api

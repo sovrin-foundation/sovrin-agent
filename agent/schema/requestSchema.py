@@ -4,6 +4,8 @@ from agent.common.constant import resourceStrings
 onboardSchema = {
     "type": "object",
     "properties": {
+        # TODO:SC Remove common schema and put it on request
+        # and check it for each web socket request
         "route": {
             "type": "string"
         },
@@ -14,6 +16,9 @@ onboardSchema = {
             "type": "string"
         },
         "publicKey": {
+            "type": "string"
+        },
+        "data": {
             "type": "string"
         }
     },
