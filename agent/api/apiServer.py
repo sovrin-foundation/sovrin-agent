@@ -8,7 +8,7 @@ from aiohttp.web import Application
 from plenum.common.looper import Looper
 from plenum.common.signer_simple import SimpleSigner
 from sovrin.client.wallet.wallet import Wallet
-from sovrin.agent.agent import runAgent, WalletedAgent
+from sovrin.agent.agent import createAgent, WalletedAgent
 from sovrin.client.client import Client
 
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
@@ -53,18 +53,9 @@ async def webSocketConnectionHandler(msg, session):
 
 
 def startAgent(name, seed, loop=None):
-
-    class ApiAgent(WalletedAgent):
-        def __init__(self,
-                     basedirpath: str,
-                     client: Client = None,
-                     wallet: Wallet = None,
-                     port: int = None, loop=None):
-            super().__init__(name, basedirpath, client, wallet, port, loop=loop)
-
     agentWallet = Wallet(name)
     agentWallet.addIdentifier(signer=SimpleSigner(seed=bytes(seed, 'utf-8')))
-    agent = runAgent(ApiAgent, name, wallet=agentWallet, startRunning=False, loop=loop)
+    agent = createAgent(WalletedAgent, name, wallet=agentWallet, loop=loop)
     agentPort = agent.endpoint.stackParams['ha'].port
     with Looper(debug=True) as looper:
         looper.add(agent)
@@ -73,7 +64,7 @@ def startAgent(name, seed, loop=None):
     return agent
 
 
-def api(loop, name, seed):
+def newApi(loop):
     app = Application(loop=loop, middlewares=[jsonParseMiddleware])
     sockjs.add_endpoint(app, prefix='/v1/wsConnection', handler=webSocketConnectionHandler)
     app.router.add_post('/v1/login', loginHttp)
@@ -94,10 +85,6 @@ def api(loop, name, seed):
         if route.name is not None and not route.name.startswith('sock'):
             cors.add(route)
 
-    agent = startAgent(name, seed, loop=loop)
-    # Add agent to app instance to allow it to be accessible
-    # from all api requests
-    app['agent'] = agent
     # In memory list of registered users, not using any database intentionally
     app['users'] = {}
 

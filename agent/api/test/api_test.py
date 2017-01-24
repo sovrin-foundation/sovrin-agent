@@ -11,13 +11,13 @@ from agent.links.api.invitation import acceptInvitation
 from agent.claims.api.claims import getClaim
 from agent.onboarding.api.onboard import onboard
 from agent.login.api.login import login
-from agent.api.apiServer import api
+from agent.api.apiServer import newApi
 
 
 @pytest.fixture
 def client(loop, test_client):
     # loop = new_event_loop()
-    return loop.run_until_complete(test_client(api(loop, "Faber", "Faber000000000000000000000000000")))
+    return loop.run_until_complete(test_client(newApi(loop)))
 
 
 def test_onboardError(loop, client):
@@ -28,7 +28,7 @@ def test_onboardError(loop, client):
     })
     with pytest.raises(ValidationError):
         loop.run_until_complete(onboard(postData, client.app))
-        client.app['agent'].endpoint.stop()
+
 
 def test_loginError(loop):
     postData = dumps({
@@ -37,7 +37,7 @@ def test_loginError(loop):
     })
     with pytest.raises(ValidationError):
         loop.run_until_complete(login(postData))
-        client.app['agent'].endpoint.stop()
+
 
 def test_claimError(loop):
     postData = dumps({
@@ -70,7 +70,6 @@ def test_invitationError(loop):
     }
     with pytest.raises(ValidationError):
         loop.run_until_complete(acceptInvitation(postData))
-        client.app['agent'].endpoint.stop()
 
     postData = {
         'route': 'acceptInvitation',
@@ -102,7 +101,7 @@ def test_onboardSuccess(loop, client):
     assert response['success']['status'] == 200
     assert 'success' in response['success']
     assert response['success']['success'] == True
-    client.app['agent'].endpoint.stop()
+
 
 def test_loginSuccess(loop):
     # TODO:KS generate this signature from nacl generated secret key
@@ -165,12 +164,10 @@ def test_onboardSuccessHtpp(loop, client):
         'route': 'register'
     })
     response = loop.run_until_complete(client.post('/v1/onboard', data=postData))
-    client.app['agent'].endpoint.stop()
     assert response.status == 200
     responseJson = loop.run_until_complete(response.json())
     assert 'success' in responseJson
     assert responseJson['success']['success'] == True
-    client.app['agent'].endpoint.stop()
 
 
 def test_loginSuccessHttp(loop, client):
@@ -181,13 +178,10 @@ def test_loginSuccessHttp(loop, client):
         'route': 'register'
     })
     response = loop.run_until_complete(client.post('/v1/login', data=postData))
-    client.app['agent'].endpoint.stop()
     assert response.status == 200
     responseJson = loop.run_until_complete(response.json())
-    client.app['agent'].endpoint.stop()
     assert 'success' in responseJson
     assert responseJson['success']['success'] == True
-    client.app['agent'].endpoint.stop()
 
 
 @pytest.mark.parametrize('url, status, key, errorMessage', [
@@ -202,13 +196,12 @@ def test_routeFailure(loop, client, url, status, key, errorMessage):
     responseText = loop.run_until_complete(response.json())
     assert key in responseText
     assert responseText[key] == errorMessage
-    client.app['agent'].endpoint.stop()
 
 
 def test_noIndexRoute(loop, client):
     response = loop.run_until_complete(client.get('/'))
     assert response.status == 404
-    client.app['agent'].endpoint.stop()
+
 
 def test_acceptInvitationSuccessHttp(loop, client):
     postData = dumps({
@@ -229,7 +222,6 @@ def test_acceptInvitationSuccessHttp(loop, client):
     responseJson = loop.run_until_complete(response.json())
     assert "claims" in responseJson
     assert "cd40:98nkk86698688" in responseJson["claims"]
-    client.app['agent'].endpoint.stop()
 
 
 def test_getClaimSuccessHtpp(loop, client):
@@ -252,4 +244,3 @@ def test_getClaimSuccessHtpp(loop, client):
         claims
     )), {})
     assert 'degree' in claim['attributes']
-    client.app['agent'].endpoint.stop()
