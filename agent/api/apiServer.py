@@ -7,9 +7,9 @@ from aiohttp.web import Application
 
 from plenum.common.looper import Looper
 from plenum.common.signer_simple import SimpleSigner
-from sovrin.client.wallet.wallet import Wallet
-from sovrin.agent.agent import runAgent, WalletedAgent
-from sovrin.client.client import Client
+from sovrin_client.client.wallet.wallet import Wallet
+from sovrin_client.agent.agent import createAgent, WalletedAgent
+from sovrin_client.client.client import Client
 
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
 from agent.common.signatureValidation import SignatureError
@@ -64,7 +64,7 @@ def startAgent(name, seed, loop=None):
 
     agentWallet = Wallet(name)
     agentWallet.addIdentifier(signer=SimpleSigner(seed=bytes(seed, 'utf-8')))
-    agent = runAgent(ApiAgent, name, wallet=agentWallet, startRunning=False, loop=loop)
+    agent = createAgent(ApiAgent, name, wallet=agentWallet, loop=loop)
     agentPort = agent.endpoint.stackParams['ha'].port
     with Looper(debug=True) as looper:
         looper.add(agent)
