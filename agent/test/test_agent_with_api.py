@@ -19,6 +19,7 @@ class HasApi:
     def __init__(self, loop):
         self.api = newApi(loop=loop)
 
+
 class Interface(Motor):
     def __init__(self, name):
         super().__init__()
@@ -91,6 +92,7 @@ class NewApi(Interface):
     def onStopping(self, *args, **kwargs):
         if self._api is None:
             self._api.loop.run_until_complete(self.shutdown())
+            self._api = None
 
 
 @pytest.fixture()
