@@ -1,6 +1,5 @@
 from jsonschema import validate
 
-from agent.api.data.sample import invitations
 from agent.common.apiMessages import LOGIN_SUCCESS, REGISTER_SUCCESS
 from agent.common.errorMessages import INVALID_CLAIM, INVALID_INVITATION, \
     ALREADY_REGISTERED
@@ -10,8 +9,9 @@ from agent.schema.requestSchema import getClaimSchema, acceptInvitationSchema, \
 
 
 class Logic:
-    def __init__(self, users=None):
+    def __init__(self, users=None, invitations=None):
         self._users = users or {}
+        self._invitations = invitations
         # TODO Logic shouldn't know about app at all.
         self._routeMap = {
             'acceptInvitation': self.acceptInvitation,
@@ -28,8 +28,8 @@ class Logic:
     async def getClaim(self, data):
         validate(data, getClaimSchema)
         invitationId = data["invitationId"]
-        if invitationId in invitations:
-            invitation = invitations[invitationId]
+        if invitationId in self._invitations:
+            invitation = self._invitations[invitationId]
             claims = list(invitation["claims"].values())
             return {"claims": claims, "type": 'getClaim'}
         return INVALID_CLAIM
@@ -38,11 +38,11 @@ class Logic:
         validate(data, acceptInvitationSchema)
         # get invitation from dummy data
         invitationId = data["invitation"]["id"]
-        if invitationId in invitations:
-            response = invitations[invitationId]
+        if invitationId in self._invitations:
+            response = self._invitations[invitationId]
             response['type'] = data['route']
             return {"type": data['route'],
-                    "claims": invitations[invitationId]['claims'],
+                    "claims": self._invitations[invitationId]['claims'],
                     "linkId": data["invitation"]["id"]}
         return INVALID_INVITATION
 

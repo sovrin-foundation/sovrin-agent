@@ -9,11 +9,12 @@ from jsonschema import ValidationError
 
 from agent.api.apiServer import newApi
 from agent.api.logic import Logic
+from agent.test import sample
 
 
 @pytest.fixture
 def logic():
-    return Logic()
+    return Logic(invitations=sample.invitations)
 
 
 @pytest.fixture
