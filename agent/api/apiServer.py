@@ -7,9 +7,9 @@ from aiohttp.web import Application
 
 from plenum.common.looper import Looper
 from plenum.common.signer_simple import SimpleSigner
-from sovrin.client.wallet.wallet import Wallet
-from sovrin.agent.agent import createAgent, WalletedAgent
-from sovrin.client.client import Client
+from sovrin_client.client.wallet.wallet import Wallet
+from sovrin_client.agent.agent import createAgent, WalletedAgent
+from sovrin_client.client.client import Client
 
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
 from agent.common.signatureValidation import SignatureError
