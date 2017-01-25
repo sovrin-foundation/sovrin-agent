@@ -8,7 +8,7 @@ from functools import reduce
 from jsonschema import ValidationError
 
 from agent.links.api.invitation import acceptInvitation
-from agent.claims.api.claims import getClaim
+from agent.api.logic import getClaim, acceptInvitation, login, onboard
 from agent.onboarding.api.onboard import onboard
 from agent.login.api.login import login
 from agent.api.apiServer import newApi
@@ -52,8 +52,7 @@ def test_claimError(loop):
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8372334',
         'route': 'getClaim'
     }
-    responseJson = loop.run_until_complete(getClaim(postData))
-    response = loads(responseJson)
+    response = loop.run_until_complete(getClaim(postData))
     assert response['error']['status'] == 400
     assert response['error']['message'] == 'invalid claim'
 
@@ -81,8 +80,7 @@ def test_invitationError(loop):
             'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
         }
     }
-    responseJson = loop.run_until_complete(acceptInvitation(postData))
-    response = loads(responseJson)
+    response = loop.run_until_complete(acceptInvitation(postData))
     assert response['error']['status'] == 400
     assert response['error']['message'] == 'invalid invitation'
 
@@ -96,8 +94,7 @@ def test_onboardSuccess(loop, client):
         'publicKey': 'eutTvvZLl5OmPkCl29WNFmwUpsJrDzuZUuS+hm36TJ4=',
         'route': 'register'
     })
-    responseJson = loop.run_until_complete(onboard(loads(postData), client.app))
-    response = loads(responseJson)
+    response = loop.run_until_complete(onboard(loads(postData), client.app))
     assert response['success']['status'] == 200
     assert 'success' in response['success']
     assert response['success']['success'] == True
@@ -110,8 +107,7 @@ def test_loginSuccess(loop):
         'sovrinId': 'sovrinId',
         'route': 'register'
     })
-    responseJSON = loop.run_until_complete(login(postData))
-    response = loads(responseJSON)
+    response = loop.run_until_complete(login(loads(postData)))
     assert response['success']['status'] == 200
     assert 'success' in response['success']
     assert response['success']['success'] == True
@@ -129,8 +125,7 @@ def test_acceptInvitationSuccess(loop):
             'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
         }
     }
-    responseJson = loop.run_until_complete(acceptInvitation(postData))
-    response = loads(responseJson)
+    response = loop.run_until_complete(acceptInvitation(postData))
     assert "claims" in response
     assert "cd40:98nkk86698688" in response["claims"]
 
@@ -142,8 +137,7 @@ def test_getClaimSuccess(loop):
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8378KH4=',
         'route': 'getClaim'
     }
-    responseJson = loop.run_until_complete(getClaim(postData))
-    response = loads(responseJson)
+    response = loop.run_until_complete(getClaim(postData))
     assert 'claims' in response
     claims = response['claims']
     assert len(claims) > 0
