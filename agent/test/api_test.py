@@ -7,57 +7,64 @@ from functools import reduce
 
 from jsonschema import ValidationError
 
-from agent.links.api.invitation import acceptInvitation
-from agent.api.logic import getClaim, acceptInvitation, login, onboard
-from agent.onboarding.api.onboard import onboard
-from agent.login.api.login import login
 from agent.api.apiServer import newApi
+from agent.api.logic import Logic
 
 
 @pytest.fixture
-def client(loop, test_client):
+def logic():
+    return Logic()
+
+
+@pytest.fixture
+def app(loop, logic):
+    return newApi(loop, logic)
+
+
+@pytest.fixture
+def client(loop, app, test_client):
     # loop = new_event_loop()
-    return loop.run_until_complete(test_client(newApi(loop)))
+    return loop.run_until_complete(test_client(app))
 
 
-def test_onboardError(loop, client):
+def test_onboardError(loop, logic):
     postData = dumps({
         'sovrinId': 'sovrinId',
         'publicKey': 'o9889899bs0y8asndjds99sd79sdndjs7=',
         'route': 'register'
     })
     with pytest.raises(ValidationError):
-        loop.run_until_complete(onboard(postData, client.app))
+        loop.run_until_complete(logic.onboard(postData))
 
 
-def test_loginError(loop):
+def test_loginError(loop, logic):
     postData = dumps({
         'signature': '979nknksdnknkskdsha797979878',
         'route': 'register'
     })
     with pytest.raises(ValidationError):
-        loop.run_until_complete(login(postData))
+        loop.run_until_complete(logic.login(postData))
 
 
-def test_claimError(loop):
+def test_claimError(loop, logic):
     postData = dumps({
         'signature': '979nknksdnknkskdsha797979878',
         'route': 'register'
     })
     with pytest.raises(ValidationError):
-        loop.run_until_complete(getClaim(postData))
+        loop.run_until_complete(logic.getClaim(postData))
 
     postData = {
         'signature': '979nknksdnknkskdsha797979878',
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8372334',
         'route': 'getClaim'
     }
-    response = loop.run_until_complete(getClaim(postData))
+    response = loop.run_until_complete(logic.getClaim(postData))
     assert response['error']['status'] == 400
     assert response['error']['message'] == 'invalid claim'
 
 
-def test_invitationError(loop):
+def test_invitationError(loop, logic):
     postData = {
         'route': 'acceptInvitation',
         'signature': '979nknksdnknkskdsha797979878',
@@ -68,7 +75,7 @@ def test_invitationError(loop):
         }
     }
     with pytest.raises(ValidationError):
-        loop.run_until_complete(acceptInvitation(postData))
+        loop.run_until_complete(logic.acceptInvitation(postData))
 
     postData = {
         'route': 'acceptInvitation',
@@ -80,12 +87,12 @@ def test_invitationError(loop):
             'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
         }
     }
-    response = loop.run_until_complete(acceptInvitation(postData))
+    response = loop.run_until_complete(logic.acceptInvitation(postData))
     assert response['error']['status'] == 400
     assert response['error']['message'] == 'invalid invitation'
 
 
-def test_onboardSuccess(loop, client):
+def test_onboardSuccess(loop, logic):
     # TODO:KS generate this signature, key from nacl
     postData = dumps({
         'signature': 'xTayONsFJnVNmgGH8CFIGbZcfI6ikR+w9kPuzUkAqFFTdkm6Eujy5AYx+PwEgwZkm5ob6nPDXYGS2aTCFyhcDHNvdnJpbklk',
@@ -94,27 +101,27 @@ def test_onboardSuccess(loop, client):
         'publicKey': 'eutTvvZLl5OmPkCl29WNFmwUpsJrDzuZUuS+hm36TJ4=',
         'route': 'register'
     })
-    response = loop.run_until_complete(onboard(loads(postData), client.app))
+    response = loop.run_until_complete(logic.onboard(loads(postData)))
     assert response['success']['status'] == 200
     assert 'success' in response['success']
     assert response['success']['success'] == True
 
 
-def test_loginSuccess(loop):
+def test_loginSuccess(loop, logic):
     # TODO:KS generate this signature from nacl generated secret key
     postData = dumps({
         'signature': '979nknksdnknkskdsha797979878',
         'sovrinId': 'sovrinId',
         'route': 'register'
     })
-    response = loop.run_until_complete(login(loads(postData)))
+    response = loop.run_until_complete(logic.login(loads(postData)))
     assert response['success']['status'] == 200
     assert 'success' in response['success']
     assert response['success']['success'] == True
 
 
 # TODO:SC test websocket connection
-def test_acceptInvitationSuccess(loop):
+def test_acceptInvitationSuccess(loop, logic):
     postData = {
         'route': 'acceptInvitation',
         'signature': '979nknksdnknkskdsha797979878',
@@ -125,19 +132,19 @@ def test_acceptInvitationSuccess(loop):
             'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
         }
     }
-    response = loop.run_until_complete(acceptInvitation(postData))
+    response = loop.run_until_complete(logic.acceptInvitation(postData))
     assert "claims" in response
     assert "cd40:98nkk86698688" in response["claims"]
 
 
 # TODO:SC test websocket connection
-def test_getClaimSuccess(loop):
+def test_getClaimSuccess(loop, logic):
     postData = {
         'signature': '979nknksdnknkskdsha797979878',
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8378KH4=',
         'route': 'getClaim'
     }
-    response = loop.run_until_complete(getClaim(postData))
+    response = loop.run_until_complete(logic.getClaim(postData))
     assert 'claims' in response
     claims = response['claims']
     assert len(claims) > 0

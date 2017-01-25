@@ -7,7 +7,7 @@ from aiohttp.web import Application
 from aiohttp.web_reqrep import json_response
 from jsonschema import ValidationError
 
-from agent.api.logic import handleMsg
+from agent.api.logic import Logic
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
 from agent.common.apiMessages import SOCKET_CONNECTED, SOCKET_CLOSED
 from agent.common.errorMessages import INVALID_DATA
@@ -18,29 +18,6 @@ from sovrin_client.agent.agent import createAgent, WalletedAgent
 from sovrin_client.client.wallet.wallet import Wallet
 
 log = logging.getLogger()
-
-
-async def handleWebSocketRequest(data, app):
-    # TODO:SC Add version in route as well
-    try:
-        res = await handleMsg(data['route'], data, app)
-        return dumps(res)
-    except SignatureError as err:
-        return err
-    except (TypeError, KeyError, ValidationError):
-        return dumps(INVALID_DATA)
-
-
-async def webSocketConnectionHandler(msg, session):
-    if msg.tp == sockjs.MSG_OPEN:
-        session.manager.broadcast(SOCKET_CONNECTED)
-    elif msg.tp == sockjs.MSG_MESSAGE:
-        # TODO:SC handle json parse error, schema error
-        requestData = json.loads(msg.data)
-        responseData = await handleWebSocketRequest(requestData, session.registry)
-        session.manager.broadcast(responseData)
-    elif msg.tp == sockjs.MSG_CLOSED:
-        session.manager.broadcast(SOCKET_CLOSED)
 
 
 def startAgent(name, seed, loop=None):
@@ -55,14 +32,38 @@ def startAgent(name, seed, loop=None):
     return agent
 
 
-async def v1(request, data):
-    res = await handleMsg(request.match_info['resource'], data, request.app)
-    return json_response(data=res)
-
-
-def newApi(loop):
+def newApi(loop, logic):
     app = Application(loop=loop, middlewares=[jsonParseMiddleware])
-    sockjs.add_endpoint(app, prefix='/v1/wsConnection', handler=webSocketConnectionHandler)
+
+    async def handleWebSocketRequest(data, app):
+        # TODO:SC Add version in route as well
+        try:
+            res = await logic.handleMsg(data['route'], data)
+            return dumps(res)
+        except SignatureError as err:
+            return err
+        except (TypeError, KeyError, ValidationError):
+            return dumps(INVALID_DATA)
+
+    async def webSocketConnectionHandler(msg, session):
+        if msg.tp == sockjs.MSG_OPEN:
+            session.manager.broadcast(SOCKET_CONNECTED)
+        elif msg.tp == sockjs.MSG_MESSAGE:
+            # TODO:SC handle json parse error, schema error
+            requestData = json.loads(msg.data)
+            responseData = await handleWebSocketRequest(requestData, session.registry)
+            session.manager.broadcast(responseData)
+        elif msg.tp == sockjs.MSG_CLOSED:
+            session.manager.broadcast(SOCKET_CLOSED)
+
+    sockjs.add_endpoint(app,
+                        prefix='/v1/wsConnection',
+                        handler=webSocketConnectionHandler)
+
+    async def v1(request, data):
+        res = await logic.handleMsg(request.match_info['resource'], data)
+        return json_response(data=res)
+
     app.router.add_post('/v1/{resource}', v1)
 
     # Enable CORS on all APIs

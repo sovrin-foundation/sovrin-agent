@@ -5,6 +5,7 @@ import pytest
 from aiohttp.web import Application
 
 from agent.api.apiServer import newApi
+from agent.api.logic import Logic
 from plenum.common.eventually import eventually
 from plenum.common.motor import Motor
 from plenum.test.helper import assertFunc
@@ -70,9 +71,10 @@ class NewApi(Interface):
     def __init__(self, name):
         super().__init__(name)
         self._api = None  # type: Application
+        self._logic = Logic()
 
     def start(self, loop):
-        self._api = newApi(loop)
+        self._api = newApi(loop, self._logic)
         super().start(loop)
 
     def setReceiver(self, receiver):
