@@ -2,7 +2,7 @@
 Sovrin package metadata
 """
 __version_info__ = (0, 0)
-__version__ = '{}.{}.{}'.format(*__version_info__)
+__version__ = '.'.join(map(str, __version_info__))
 __author__ = "Evernym, Inc."
 __license__ = "Apache 2.0"
 
