@@ -29,5 +29,5 @@ setup(
     install_requires=['sovrin'],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
-    scripts=[]
+    scripts=['scripts/startApiServer', 'scripts/startApiServerDebug']
 )
