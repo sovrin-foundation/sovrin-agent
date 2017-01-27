@@ -11,8 +11,8 @@ from agent.api.apiServer import newApi
 from agent.api.logic import Logic
 
 
-def run(args, loop=get_event_loop()):
-    agentApi = newApi(loop, Logic())
+def run(args):
+    agentApi = newApi(get_event_loop(), Logic())
     web.run_app(agentApi, host=args.host, port=args.port)
 
 
