@@ -35,7 +35,7 @@ def startAgent(name, seed, loop=None):
 def newApi(loop, logic):
     app = Application(loop=loop, middlewares=[jsonParseMiddleware])
 
-    async def handleWebSocketRequest(data, app):
+    async def handleWebSocketRequest(data):
         # TODO:SC Add version in route as well
         try:
             res = await logic.handleMsg(data['route'], data)
@@ -51,7 +51,7 @@ def newApi(loop, logic):
         elif msg.tp == sockjs.MSG_MESSAGE:
             # TODO:SC handle json parse error, schema error
             requestData = json.loads(msg.data)
-            responseData = await handleWebSocketRequest(requestData, session.registry)
+            responseData = await handleWebSocketRequest(requestData)
             session.manager.broadcast(responseData)
         elif msg.tp == sockjs.MSG_CLOSED:
             session.manager.broadcast(SOCKET_CLOSED)
