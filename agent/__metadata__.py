@@ -9,5 +9,5 @@ __license__ = "Apache 2.0"
 __all__ = ['__version_info__', '__version__', '__author__', '__license__']
 
 __dependencies__ = {
-    "sovrin_client": ">=0.0.9"
+    "sovrin_client": ">=0.1.0"
 }

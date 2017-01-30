@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from jsonschema import validate
 
 from agent.common.apiMessages import LOGIN_SUCCESS, REGISTER_SUCCESS
@@ -8,24 +10,30 @@ from agent.schema.requestSchema import getClaimSchema, acceptInvitationSchema, \
     loginSchema, onboardSchema
 
 
-class Logic:
+class HandlesMessages:
+    @abstractmethod
+    async def handleMsg(self, kind, data):
+        raise NotImplementedError
+
+
+class Logic(HandlesMessages):
     def __init__(self, users=None, invitations=None):
         self._users = users or {}
         self._invitations = invitations
         # TODO Logic shouldn't know about app at all.
         self._routeMap = {
-            'acceptInvitation': self.acceptInvitation,
-            'getClaim': self.getClaim,
-            'login': self.login,
-            'register': self.onboard,
-            'onboard': self.onboard
+            'acceptInvitation': self._acceptInvitation,
+            'getClaim': self._getClaim,
+            'login': self._login,
+            'register': self._onboard,
+            'onboard': self._onboard
         }
 
     async def handleMsg(self, kind, data):
         handler = self._routeMap[kind]
         return await handler(data)
 
-    async def getClaim(self, data):
+    async def _getClaim(self, data):
         validate(data, getClaimSchema)
         invitationId = data["invitationId"]
         if invitationId in self._invitations:
@@ -34,7 +42,7 @@ class Logic:
             return {"claims": claims, "type": 'getClaim'}
         return INVALID_CLAIM
 
-    async def acceptInvitation(self, data):
+    async def _acceptInvitation(self, data):
         validate(data, acceptInvitationSchema)
         # get invitation from dummy data
         invitationId = data["invitation"]["id"]
@@ -46,11 +54,11 @@ class Logic:
                     "linkId": data["invitation"]["id"]}
         return INVALID_INVITATION
 
-    async def login(self, data):
+    async def _login(self, data):
         validate(data, loginSchema)
         return LOGIN_SUCCESS
 
-    async def onboard(self, data):
+    async def _onboard(self, data):
         validate(data, onboardSchema)
         # validate signature
         verified, message = validateSignature(data['signature'],

@@ -35,7 +35,7 @@ def test_onboardError(loop, logic):
         'route': 'register'
     })
     with pytest.raises(ValidationError):
-        loop.run_until_complete(logic.onboard(postData))
+        loop.run_until_complete(logic._onboard(postData))
 
 
 def test_loginError(loop, logic):
@@ -44,7 +44,7 @@ def test_loginError(loop, logic):
         'route': 'register'
     })
     with pytest.raises(ValidationError):
-        loop.run_until_complete(logic.login(postData))
+        loop.run_until_complete(logic._login(postData))
 
 
 def test_claimError(loop, logic):
@@ -53,14 +53,14 @@ def test_claimError(loop, logic):
         'route': 'register'
     })
     with pytest.raises(ValidationError):
-        loop.run_until_complete(logic.getClaim(postData))
+        loop.run_until_complete(logic._getClaim(postData))
 
     postData = {
         'signature': '979nknksdnknkskdsha797979878',
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8372334',
         'route': 'getClaim'
     }
-    response = loop.run_until_complete(logic.getClaim(postData))
+    response = loop.run_until_complete(logic._getClaim(postData))
     assert response['error']['status'] == 400
     assert response['error']['message'] == 'invalid claim'
 
@@ -76,7 +76,7 @@ def test_invitationError(loop, logic):
         }
     }
     with pytest.raises(ValidationError):
-        loop.run_until_complete(logic.acceptInvitation(postData))
+        loop.run_until_complete(logic._acceptInvitation(postData))
 
     postData = {
         'route': 'acceptInvitation',
@@ -88,7 +88,7 @@ def test_invitationError(loop, logic):
             'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
         }
     }
-    response = loop.run_until_complete(logic.acceptInvitation(postData))
+    response = loop.run_until_complete(logic._acceptInvitation(postData))
     assert response['error']['status'] == 400
     assert response['error']['message'] == 'invalid invitation'
 
@@ -102,7 +102,7 @@ def test_onboardSuccess(loop, logic):
         'publicKey': 'eutTvvZLl5OmPkCl29WNFmwUpsJrDzuZUuS+hm36TJ4=',
         'route': 'register'
     })
-    response = loop.run_until_complete(logic.onboard(loads(postData)))
+    response = loop.run_until_complete(logic._onboard(loads(postData)))
     assert response['success']['status'] == 200
     assert 'success' in response['success']
     assert response['success']['success'] == True
@@ -115,7 +115,7 @@ def test_loginSuccess(loop, logic):
         'sovrinId': 'sovrinId',
         'route': 'register'
     })
-    response = loop.run_until_complete(logic.login(loads(postData)))
+    response = loop.run_until_complete(logic._login(loads(postData)))
     assert response['success']['status'] == 200
     assert 'success' in response['success']
     assert response['success']['success'] == True
@@ -133,7 +133,7 @@ def test_acceptInvitationSuccess(loop, logic):
             'signature': 'oiadmmat0-tvknaai7efa7f5aklfaf=adf8ff'
         }
     }
-    response = loop.run_until_complete(logic.acceptInvitation(postData))
+    response = loop.run_until_complete(logic._acceptInvitation(postData))
     assert "claims" in response
     assert "cd40:98nkk86698688" in response["claims"]
 
@@ -145,7 +145,7 @@ def test_getClaimSuccess(loop, logic):
         'invitationId': '3W2465HP3OUPGkiNlTMl2iZ+NiMZegfUFIsl8378KH4=',
         'route': 'getClaim'
     }
-    response = loop.run_until_complete(logic.getClaim(postData))
+    response = loop.run_until_complete(logic._getClaim(postData))
     assert 'claims' in response
     claims = response['claims']
     assert len(claims) > 0

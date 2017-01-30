@@ -7,7 +7,6 @@ from aiohttp.web import Application
 from aiohttp.web_reqrep import json_response
 from jsonschema import ValidationError
 
-from agent.api.logic import Logic
 from agent.api.middlewares.jsonParseMiddleware import jsonParseMiddleware
 from agent.common.apiMessages import SOCKET_CONNECTED, SOCKET_CLOSED
 from agent.common.errorMessages import INVALID_DATA
@@ -32,13 +31,13 @@ def startAgent(name, seed, loop=None):
     return agent
 
 
-def newApi(loop, logic):
+def newApi(loop, msgHandler):
     app = Application(loop=loop, middlewares=[jsonParseMiddleware])
 
     async def handleWebSocketRequest(data):
         # TODO:SC Add version in route as well
         try:
-            res = await logic.handleMsg(data['route'], data)
+            res = await msgHandler.handleMsg(data['route'], data)
             return dumps(res)
         except SignatureError as err:
             return err
@@ -61,7 +60,7 @@ def newApi(loop, logic):
                         handler=webSocketConnectionHandler)
 
     async def v1(request, data):
-        res = await logic.handleMsg(request.match_info['resource'], data)
+        res = await msgHandler.handleMsg(request.match_info['resource'], data)
         return json_response(data=res)
 
     app.router.add_post('/v1/{resource}', v1)
