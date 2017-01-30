@@ -17,6 +17,8 @@ from plenum.common.signer_simple import SimpleSigner
 from sovrin_client.agent.agent import createAgent, WalletedAgent
 from sovrin_client.client.wallet.wallet import Wallet
 
+from agent.extensions import LocationV0, PhoneLogV0
+
 log = logging.getLogger()
 
 
@@ -65,6 +67,27 @@ def newApi(loop, logic):
         return json_response(data=res)
 
     app.router.add_post('/v1/{resource}', v1)
+
+    # beginning of extension registration and routing
+    installed_extensions = []
+
+    def register_extension(extension_module):
+        app.router.add_subapp('/' + extension_module.extension_designator, extension_module.get_app(loop))
+        installed_extensions.append(extension_module)
+
+    register_extension(LocationV0)
+    register_extension(PhoneLogV0)
+
+    async def extensions_list(request):
+        res = {
+            "extensions": [
+                em.extension_designator for em in installed_extensions
+            ]
+          }
+        return json_response(data=res)
+
+    app.router.add_get('/.well-known/extensions', extensions_list)
+    # end of extension registration and routing
 
     # Enable CORS on all APIs
     cors = aiohttp_cors.setup(app, defaults={
