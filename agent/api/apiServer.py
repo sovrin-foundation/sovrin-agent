@@ -17,7 +17,8 @@ from plenum.common.signer_simple import SimpleSigner
 from sovrin_client.agent.agent import createAgent, WalletedAgent
 from sovrin_client.client.wallet.wallet import Wallet
 
-from agent.extensions import LocationV0, PhoneLogV0
+from agent.extensions.LocationV0 import LocationV0
+from agent.extensions.PhoneLogV0 import PhoneLogV0
 
 log = logging.getLogger()
 
@@ -72,16 +73,16 @@ def newApi(loop, logic):
     installed_extensions = []
 
     def register_extension(extension_module):
-        app.router.add_subapp('/' + extension_module.extension_designator, extension_module.get_app(loop))
+        app.router.add_subapp('/' + extension_module.get_designator(), extension_module.get_app(loop))
         installed_extensions.append(extension_module)
 
-    register_extension(LocationV0)
-    register_extension(PhoneLogV0)
+    register_extension(LocationV0())
+    register_extension(PhoneLogV0())
 
     async def extensions_list(request):
         res = {
             "extensions": [
-                em.extension_designator for em in installed_extensions
+                em.get_designator() for em in installed_extensions
             ]
           }
         return json_response(data=res)

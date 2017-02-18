@@ -1,15 +1,24 @@
 from aiohttp.web import Application
 from aiohttp.web_reqrep import json_response
 
-extension_designator = "location-v0.notsodistantfuture.com"
+from agent.extensions.APIExtension import APIExtension
 
 
-def get_app(loop):
-    async def timezone_handler(request):
-        timezone_bundle = {}
-        return json_response(data=timezone_bundle)
+class LocationV0(APIExtension):
 
-    locationapp = Application(loop=loop)
-    locationapp.router.add_get('/timezone', timezone_handler)
+    def __init__(self):
+        pass
 
-    return locationapp
+    def get_designator(self):
+        return "location-v0.notsodistantfuture.com"
+
+    def get_app(self, loop):
+
+        subapp = Application(loop=loop)
+        subapp.router.add_get('/timezone', self.timezone_handler)
+
+        return subapp
+
+    async def timezone_handler(self, request):
+            timezone_bundle = {}
+            return json_response(data=timezone_bundle)
