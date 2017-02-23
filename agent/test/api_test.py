@@ -1,5 +1,3 @@
-from asyncio import get_event_loop, new_event_loop
-
 import pytest
 
 from json import dumps, loads
@@ -24,7 +22,6 @@ def app(loop, logic):
 
 @pytest.fixture
 def client(loop, app, test_client):
-    # loop = new_event_loop()
     return loop.run_until_complete(test_client(app))
 
 

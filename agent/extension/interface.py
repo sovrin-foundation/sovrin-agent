@@ -1,5 +1,7 @@
 from abc import abstractmethod
 
+from aiohttp.web import Application
+
 from agent.api.apiServer import newApi
 from agent.api.logic import HandlesMessages, Logic
 from plenum.common.motor import Motor
