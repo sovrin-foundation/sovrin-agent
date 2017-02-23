@@ -15,7 +15,7 @@ def run_script(script, *args):
     command.extend(args)
 
     with Popen([executable, s]) as p:
-        sleep(2)
+        sleep(4)
         p.send_signal(SIGINT)
         p.wait(timeout=1)
         assert p.poll() == 0, 'script failed'

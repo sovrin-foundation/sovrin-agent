@@ -29,21 +29,21 @@ class NewAgent(Motor, Logic):
         Logic.__init__(self)
         self._last_loop = None
         self._name = name
-        self._interfaces = {}  # type: Dict[str, Interface]
+        self.interfaces = {}  # type: Dict[str, Interface]
 
     def name(self):
         return self._name
 
     def loadExtension(self, extension: Extension):
         for i in extension.get_interfaces():
-            self._interfaces[i.name()] = i
+            self.interfaces[i.name()] = i
             i.start(self._last_loop)
         d = {i.name(): i for i in extension.get_interfaces()}
-        self._interfaces.update(d)
+        self.interfaces.update(d)
 
     async def prod(self, limit) -> int:
         s = 0
-        for i in self._interfaces.values():
+        for i in self.interfaces.values():
             s += await i.prod(limit)
         return s
 
@@ -52,12 +52,12 @@ class NewAgent(Motor, Logic):
 
     def start(self, loop):
         self._last_loop = loop
-        for iface in self._interfaces.values():
+        for iface in self.interfaces.values():
             iface.start(loop)
         super().start(loop)
 
     def onStopping(self, *args, **kwargs):
-        for iface in self._interfaces.values():
+        for iface in self.interfaces.values():
             iface.stop(*args, **kwargs)
 
 
@@ -70,26 +70,21 @@ def looper(txnPoolNodesLooper):
 def loop(looper):
     return looper.loop
 
-@pytest.fixture()
-def api_extension(looper):
-    return ApiExtension('api1')
-
 
 @pytest.fixture()
-def api_client(looper, test_client, api_extension):
-    return looper.run(test_client(api_extension.get_interfaces()[0]._api))
-
-
-@pytest.fixture()
-def agent(looper, api_extension):
+def agent(looper):
     a = NewAgent('agent1')
-    a.loadExtension(api_extension)
+    a.loadExtension(ApiExtension('api1'))
     looper.add(a)
-    looper.startall()
     return a
 
 
-def testNewAgent(looper, agent, api_extension, api_client):
+@pytest.fixture()
+def api_client(looper, agent, test_client):
+    return looper.run(test_client(agent.interfaces['api1']._api))
+
+
+def testNewAgent(looper, agent,  api_client):
     response = looper.run(api_client.get('/'))
     assert response.status == 404
     # test_api_client
