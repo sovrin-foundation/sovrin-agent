@@ -66,6 +66,10 @@ def looper(txnPoolNodesLooper):
     return txnPoolNodesLooper
 
 
+@pytest.fixture
+def loop(looper):
+    return looper.loop
+
 @pytest.fixture()
 def api_extension(looper):
     return ApiExtension('api1')
