@@ -6,7 +6,12 @@ from time import sleep
 
 
 def test_startApiServer():
-    run_script('startApiServer')
+    for port in range(8080, 8090): # try several ports to find the free one
+        res = run_script('startApiServer', '0.0.0.0', str(port))
+        if res != 2: # 2 means address in use
+            break
+
+    assert res == 0, 'script failed'
 
 
 def run_script(script, *args):
@@ -14,9 +19,9 @@ def run_script(script, *args):
     command = [executable, s]
     command.extend(args)
 
-    with Popen([executable, s]) as p:
+    with Popen(command, env={'PYTHONPATH': '.'}) as p:
         sleep(4)
         p.send_signal(SIGINT)
         p.wait(timeout=1)
-        assert p.poll() == 0, 'script failed'
+        return p.poll()
 
