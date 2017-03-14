@@ -6,16 +6,12 @@ from time import sleep
 
 
 def test_startApiServer():
-    port_range_end = 8090 # XXX
-    for port in range(8080, port_range_end):
+    for port in range(8080, 8090): # try several ports to find the free one
         res = run_script('startApiServer', '0.0.0.0', str(port))
-        try:
-            assert res == 0, 'script failed'
-        except AssertionError:
-            if res != 2 or port == port_range_end: # 2 means address in use
-                raise
-        else:
-            return
+        if res != 2: # 2 means address in use
+            break
+
+    assert res == 0, 'script failed'
 
 
 def run_script(script, *args):
