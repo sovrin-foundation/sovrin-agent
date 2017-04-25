@@ -16,7 +16,8 @@ def testUbuntu = {
 
         testEnv.inside('--network host') {
             echo 'Ubuntu Test: Install dependencies'
-            testHelpers.install()
+            //testHelpers.install()
+            sh "pip install pytest"
             sh "pip install -r requirements.txt"
 
             echo 'Ubuntu Test: Test'
