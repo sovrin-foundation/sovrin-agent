@@ -5,7 +5,7 @@ anoncreds==0.2.34
 async-timeout==1.0.0
 base58==0.2.3
 chardet==2.3.0
-Charm-Crypto==0.43
+Charm-Crypto
 ioflo==1.5.4
 jsonpickle==0.9.3
 jsonschema==2.5.1
@@ -32,7 +32,7 @@ semver==2.7.1
 six==1.10.0
 sockjs==0.5.0
 sortedcontainers==1.5.7
--e git+git@github.com:sovrin-foundation/sovrin-client.git@2ad71ec8e4c34cbe4204a4fd4c65898b75a18105#egg=sovrin_client
--e git+git@github.com:sovrin-foundation/sovrin-common.git@3542ba7ea70e96a4aeed54262d32c2572d4def53#egg=sovrin_common
--e git+git@github.com:sovrin-foundation/sovrin-node.git@089d12e488feaf9390f8d19d48714dd0a6fc3446#egg=sovrin_node
+-e git+https://github.com/sovrin-foundation/sovrin-client.git@2ad71ec8e4c34cbe4204a4fd4c65898b75a18105#egg=sovrin_client
+-e git+https://github.com/sovrin-foundation/sovrin-common.git@3542ba7ea70e96a4aeed54262d32c2572d4def53#egg=sovrin_common
+-e git+https://github.com/sovrin-foundation/sovrin-node.git@089d12e488feaf9390f8d19d48714dd0a6fc3446#egg=sovrin_node
 wcwidth==0.1.7
